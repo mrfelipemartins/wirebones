@@ -239,7 +239,7 @@ function snapshotWirebone(payload) {
 
   const rootRect = root.getBoundingClientRect()
   const bones = []
-  const defaultLeafTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th']
+  const defaultLeafTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']
   const leafTags = new Set([...defaultLeafTags, ...(config.leafTags || [])].map((tag) => String(tag).toLowerCase()))
   const excludeTags = new Set((config.excludeTags || []).map((tag) => String(tag).toLowerCase()))
   const excludeSelectors = (config.excludeSelectors || []).map((selector) => String(selector)).filter(Boolean)
@@ -256,7 +256,8 @@ function snapshotWirebone(payload) {
 
     const isMedia = ['img', 'svg', 'video', 'canvas', 'picture'].includes(tag)
     const isForm = ['input', 'button', 'textarea', 'select'].includes(tag)
-    const isLeaf = children.length === 0 || isMedia || isForm || leafTags.has(tag)
+    const isTableStructure = isTableStructuredElement(node)
+    const isLeaf = !isTableStructure && (children.length === 0 || isMedia || isForm || leafTags.has(tag))
 
     const hasBg = !isTransparent(style.backgroundColor)
     const hasBgImage = style.backgroundImage && style.backgroundImage !== 'none'
@@ -274,6 +275,8 @@ function snapshotWirebone(payload) {
     if (hasBg || hasBgImage || hasRoundedBorder) {
       pushBone(node, style, true)
     }
+
+    pushTextBones(node, style)
 
     for (const child of children) walk(child)
   }
@@ -293,14 +296,45 @@ function snapshotWirebone(payload) {
     const rect = node.getBoundingClientRect()
     if (rect.width < 1 || rect.height < 1 || rootRect.width < 1) return
 
+    pushRect(rect, radiusFor(node, style), container)
+  }
+
+  function pushTextBones(node, style) {
+    for (const child of node.childNodes) {
+      if (child.nodeType !== Node.TEXT_NODE) continue
+      if (!String(child.textContent || '').trim()) continue
+
+      const range = document.createRange()
+      range.selectNodeContents(child)
+
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 1 || rect.height < 1) continue
+
+        pushRect(rect, Math.min(8, Math.max(2, Math.round(rect.height / 2))), false)
+      }
+
+      range.detach()
+    }
+  }
+
+  function pushRect(rect, radius, container) {
+    if (rect.width < 1 || rect.height < 1 || rootRect.width < 1) return
+
     const x = +(((rect.left - rootRect.left) / rootRect.width) * 100).toFixed(4)
     const y = Math.round(rect.top - rootRect.top)
     const w = +((rect.width / rootRect.width) * 100).toFixed(4)
     const h = Math.round(rect.height)
-    const r = radiusFor(node, style)
-    const compact = [x, y, w, h, r]
+    const compact = [x, y, w, h, radius]
     if (container) compact.push(true)
     bones.push(compact)
+  }
+
+  function isTableStructuredElement(node) {
+    const tag = node.tagName.toLowerCase()
+    const role = String(node.getAttribute('role') || '').toLowerCase()
+
+    return ['table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th'].includes(tag)
+      || ['table', 'rowgroup', 'row', 'cell', 'columnheader', 'rowheader'].includes(role)
   }
 
   function radiusFor(node, style) {

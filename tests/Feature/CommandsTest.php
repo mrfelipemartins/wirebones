@@ -106,7 +106,7 @@ it('build passes expected payload to node and removes its temporary payload file
             'breakpoints' => [375, 768, 1280],
             'wait' => 25,
             'captureConfig' => [
-                'leafTags' => ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th'],
+                'leafTags' => ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'],
                 'excludeTags' => [],
                 'excludeSelectors' => [],
                 'captureRoundedBorders' => true,

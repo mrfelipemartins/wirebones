@@ -47,10 +47,12 @@ return [
     | These options tune how Wirebones turns rendered DOM into skeleton shapes.
     | Leaf tags are captured as content bones even when they have inline
     | children, while excluded tags and selectors are ignored during capture.
+    | Table structures are handled separately so cells do not become solid
+    | full-width blocks.
     |
     */
 
-    'leaf_tags' => ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'td', 'th'],
+    'leaf_tags' => ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'],
 
     'exclude_tags' => [],
 
@@ -107,17 +109,17 @@ return [
     | wirebones:build. Re-run the build command after changing them.
     */
 
-    'color' => 'oklch(92.8% 0.006 264.531)',
+    'color' => 'rgb(161 161 170 / 0.22)',
 
-    'container_color' => 'oklch(96.7% 0.003 264.542)',
+    'container_color' => 'rgb(161 161 170 / 0.12)',
 
-    'dark_color' => 'oklch(37% 0.013 285.805)',
+    'dark_color' => 'rgb(161 161 170 / 0.24)',
 
-    'dark_container_color' => 'oklch(27.4% 0.006 286.033)',
+    'dark_container_color' => 'rgb(161 161 170 / 0.14)',
 
-    'shimmer_color' => 'oklch(96.7% 0.003 264.542)',
+    'shimmer_color' => 'rgb(255 255 255 / 0.50)',
 
-    'dark_shimmer_color' => 'oklch(44.2% 0.017 285.786)',
+    'dark_shimmer_color' => 'rgb(24 24 27 / 0.50)',
 
     'animation' => 'pulse', // pulse, shimmer, solid
 
