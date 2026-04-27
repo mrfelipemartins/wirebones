@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            laravel: '^12.0'
+            testbench: '^10.0'
+          - php: '8.3'
+            laravel: '^12.0'
+            testbench: '^10.0'
+          - php: '8.4'
+            laravel: '^12.0'
+            testbench: '^10.0'
+          - php: '8.3'
+            laravel: '^13.0'
+            testbench: '^11.0'
+          - php: '8.4'
+            laravel: '^13.0'
+            testbench: '^11.0'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: |
+          composer require --no-interaction --no-progress --with-all-dependencies --no-update \
+            illuminate/console:${{ matrix.laravel }} \
+            illuminate/filesystem:${{ matrix.laravel }} \
+            illuminate/support:${{ matrix.laravel }} \
+            illuminate/view:${{ matrix.laravel }} \
+            orchestra/testbench:${{ matrix.testbench }}
+          composer update --no-interaction --no-progress --with-all-dependencies
+
+      - name: Run tests
+        run: composer test
+
+      - name: Run static analysis
+        run: composer analyse
+
+  javascript:
+    name: JavaScript
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Run JavaScript tests
+        run: npm test
+
+  package-hygiene:
+    name: Package hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Check required package files
+        run: |
+          test -f README.md
+          test -f LICENSE.md
+          test -f composer.json
+          test -f resources/boost/skills/wirebones-development/SKILL.md
+
+      - name: Ensure generated placeholders are not committed
+        run: |
+          if git ls-files 'storage/framework/wirebones/*' | grep -q .; then
+            echo "Generated Wirebones artifacts must not be committed."
+            git ls-files 'storage/framework/wirebones/*'
+            exit 1
+          fi

@@ -1,0 +1,1 @@
+<div>Dynamic card</div>
