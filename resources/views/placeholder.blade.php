@@ -14,7 +14,7 @@
     $responsiveStrategy = $config['responsiveStrategy'] === 'container' ? 'container' : 'viewport';
 @endphp
 
-<{!! $tag !!} class="wirebones {{ $uid }}" aria-hidden="true">
+<{!! $tag !!} class="wirebones {{ $uid }}" aria-busy="true">
     <style>
         .{{ $uid }}{position:relative;width:100%}
         .{{ $uid }} .wirebones-layer{display:none;position:relative;width:100%;overflow:hidden}
@@ -32,6 +32,7 @@
         .{{ $uid }} .wirebones-bone{opacity:0;animation-delay:var(--wirebones-delay,0ms)}
         @keyframes {{ $uid }}-show{from{opacity:0}to{opacity:1}}
         @endif
+        @media (prefers-reduced-motion:reduce){.{{ $uid }} .wirebones-bone{animation:none!important;opacity:1}}
         @if ($responsiveStrategy === 'container')
         .{{ $uid }}{container-type:inline-size}
         @endif
@@ -82,6 +83,7 @@
                 @continue($isContainer && ! $config['renderContainers'])
                 <div
                     class="wirebones-bone @if($isContainer) wirebones-container @endif"
+                    aria-hidden="true"
                     style="{{ $style }}"
                 ></div>
             @endforeach
