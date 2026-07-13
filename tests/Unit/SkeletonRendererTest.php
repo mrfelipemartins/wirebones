@@ -34,6 +34,32 @@ it('renders safe root tags and falls back from unsafe tags', function (): void {
         ->toContain('<div class="wirebones');
 });
 
+it('marks the placeholder busy while keeping generated bones decorative', function (): void {
+    $html = renderWirebone([
+        'breakpoints' => [
+            '375' => ['height' => 40, 'bones' => [[0, 0, 100, 40, 8]]],
+        ],
+    ]);
+
+    expect($html)->toMatch('/<div class="wirebones [^"]+" aria-busy="true">/')
+        ->and($html)->toContain('class="wirebones-bone')
+        ->and($html)->toContain('aria-hidden="true"');
+});
+
+it('disables bone animation and restores staggered opacity for reduced motion', function (): void {
+    $html = renderWirebone([
+        'breakpoints' => [
+            '375' => ['height' => 40, 'bones' => [[0, 0, 100, 40, 8]]],
+        ],
+    ], [
+        'animation' => 'shimmer',
+        'stagger' => 25,
+    ]);
+
+    expect($html)->toContain('@media (prefers-reduced-motion:reduce)')
+        ->and($html)->toContain('.wirebones-bone{animation:none!important;opacity:1}');
+});
+
 it('renders breakpoint layers, dimensions, radius, and viewport media queries', function (): void {
     $html = renderWirebone([
         'rootTag' => 'div',
