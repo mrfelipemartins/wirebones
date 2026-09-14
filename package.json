@@ -6,6 +6,6 @@
     "test": "node --test tests/js/*.test.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.61.1"
+    "playwright": "^1.63.0"
   }
 }
